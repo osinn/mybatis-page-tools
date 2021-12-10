@@ -13,69 +13,23 @@
             <result column="r_tenant_id" property="tenantId" />
         </collection>
     </resultMap>
-    <insert id="batchSave">
-        INSERT INTO `user` (`id`,`username`,`password`) VALUES
-        <foreach collection="userList" item="userItem" separator=",">
-            (#{userItem.id},#{userItem.username},#{userItem.password})
-        </foreach>
-    </insert>
-    <insert id="save">
-        INSERT INTO `user` (`id`,`username`,`password`) VALUES(#{id},#{username},#{password}),(23,'test','testssss')
-    </insert>
-    <update id="updateById">
-        update user set username=#{username},password=#{password} where id=#{id}
-    </update>
 
-
-    <select id="selectTestWhere" resultType="com.gitee.osinn.mybatis.page.plugin.entity.UserEntity">
-                <![CDATA[
-        SELECT * FROM user WHERE 1=1 and id = #{id}
-        ]]>
+    <select id="testMybatis2Page" resultType="com.gitee.osinn.mybatis.page.plugin.entity.UserEntity">
+        SELECT * FROM user
     </select>
-    <select id="fetchUserAndRole" resultMap="pageResultMap">
-        SELECT
-            u.*,
-            r.id as r_id,
-            r.name as r_name
-        FROM
-            `user` u
-            LEFT JOIN user_role ur ON ur.user_id = u.id
-            LEFT JOIN `role` r ON r.id = ur.role_id
-    </select>
-
-    <select id="fetchUserByRoleId" resultType="com.gitee.osinn.mybatis.page.plugin.entity.UserEntity">
-        SELECT
-            u.*
-        FROM
-            `user` u
-                JOIN user_role r ON u.id = r.user_id and r.role_id=#{roleId}
-
-    </select>
-
-    <select id="checkUserName" resultType="java.lang.Boolean">
-        SELECT EXISTS
-                   ( SELECT * FROM `user` WHERE username = #{userName}) d
-    </select>
-    <select id="testUnionSelect" resultType="com.gitee.osinn.mybatis.page.plugin.entity.UserEntity">
-        SELECT * FROM `user` union SELECT id,account as username,`password`,tenant_id FROM account
-    </select>
-
-    <delete id="deleteByUserId">
-        delete from user where id in ( select id from user s where id=#{id})
-    </delete>
-
-    <delete id="deleteById">
-        delete from user where id =#{id}
-    </delete>
-
     <select id="testMybatisPage" resultType="com.gitee.osinn.mybatis.page.plugin.entity.UserEntity">
-        SELECT * FROM user where 1=1
+        SELECT * FROM user where username = #{username}
+    </select>
+    <select id="testMybatis3Page" resultType="com.gitee.osinn.mybatis.page.plugin.entity.UserEntity">
+        SELECT * FROM user where username = #{username} and password = #{password}
     </select>
     <select id="selectAll" resultType="com.gitee.osinn.mybatis.page.plugin.entity.UserEntity">
         SELECT * FROM `user`
     </select>
-
     <select id="testPage" resultType="com.gitee.osinn.mybatis.page.plugin.entity.UserEntity">
         SELECT * FROM user LIMIT #{pageNum}, #{pageSize};
+    </select>
+    <select id="testMybatis4Page" resultType="com.gitee.osinn.mybatis.page.plugin.entity.UserEntity">
+        SELECT * FROM user
     </select>
 </mapper>

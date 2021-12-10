@@ -6,6 +6,7 @@ import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.statement.select.PlainSelect;
 import net.sf.jsqlparser.statement.select.Select;
+import org.apache.ibatis.builder.annotation.ProviderSqlSource;
 import org.apache.ibatis.cache.CacheKey;
 import org.apache.ibatis.executor.Executor;
 import org.apache.ibatis.mapping.*;
@@ -165,21 +166,49 @@ public class PageHandlerInterceptor extends MySqlDialect {
                                            ResultHandler resultHandler,
                                            CacheKey cacheKey,
                                            Page page) throws SQLException {
-        List<ParameterMapping> newParameterMappings = new ArrayList<ParameterMapping>(boundSql.getParameterMappings());
 
-        if (super.startRow(page.getPageNum(), page.getPageNum()) != 0) {
-            newParameterMappings.add(new ParameterMapping.Builder(mappedStatement.getConfiguration(), PAGE_PARAMETER_FIRST, int.class).build());
-        }
-        newParameterMappings.add(new ParameterMapping.Builder(mappedStatement.getConfiguration(), PAGE_PARAMETER_SECOND, int.class).build());
+        parameter = this.processParameterObject(mappedStatement, parameter, boundSql, cacheKey, page);
 
-        MetaObject metaObject = SystemMetaObject.forObject(boundSql);
-        metaObject.setValue("parameterMappings", newParameterMappings);
 
         String pageSql = getPageSql(page, boundSql);
 
         BoundSql pageBoundSql = new BoundSql(mappedStatement.getConfiguration(), pageSql, boundSql.getParameterMappings(), parameter);
 
         return executor.query(mappedStatement, parameter, rowBounds, resultHandler, cacheKey, pageBoundSql);
+    }
+
+    private Object processParameterObject(MappedStatement mappedStatement, Object parameterObject, BoundSql boundSql, CacheKey pageKey, Page page) {
+        Map<String, Object> paramMap = null;
+        if (parameterObject == null) {
+            paramMap = new HashMap<>();
+        } else if (parameterObject instanceof Map) {
+            //解决不可变Map的情况
+            paramMap = new HashMap<>();
+            paramMap.putAll((Map) parameterObject);
+        } else {
+            paramMap = new HashMap<>();
+        }
+        return processPageParameter(mappedStatement, paramMap, page, boundSql, pageKey);
+    }
+
+    public Object processPageParameter(MappedStatement mappedStatement, Map<String, Object> paramMap, Page page, BoundSql boundSql, CacheKey pageKey) {
+        paramMap.put(PAGE_PARAMETER_FIRST, startRow(page.getPageNum(), page.getPageSize()));
+        paramMap.put(PAGE_PARAMETER_SECOND, page.getPageSize());
+        //处理pageKey
+        pageKey.update(startRow(page.getPageNum(), page.getPageSize()));
+        pageKey.update(page.getPageSize());
+        //处理参数配置
+        if (boundSql.getParameterMappings() != null) {
+            List<ParameterMapping> newParameterMappings = new ArrayList<>(boundSql.getParameterMappings());
+            if (super.startRow(page.getPageNum(), page.getPageNum()) != 0) {
+                newParameterMappings.add(new ParameterMapping.Builder(mappedStatement.getConfiguration(), PAGE_PARAMETER_FIRST, int.class).build());
+            }
+            newParameterMappings.add(new ParameterMapping.Builder(mappedStatement.getConfiguration(), PAGE_PARAMETER_SECOND, int.class).build());
+
+            MetaObject metaObject = SystemMetaObject.forObject(boundSql);
+            metaObject.setValue("parameterMappings", newParameterMappings);
+        }
+        return paramMap;
     }
 
     /**
