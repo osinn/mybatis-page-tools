@@ -19,6 +19,8 @@ public interface UserMapper {
 
     List<UserEntity> testMybatis4Page(@Param("page") Page page);
 
+    List<UserEntity> fetchByUsername(Page page, @Param("usernames")  List<String> usernames);
+
     @Select("SELECT * FROM user")
     List<UserEntity> testMybatis5Page(@Param("page") Page page);
 

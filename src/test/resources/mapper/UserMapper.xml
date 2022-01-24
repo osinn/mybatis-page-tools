@@ -32,4 +32,7 @@
     <select id="testMybatis4Page" resultType="com.gitee.osinn.mybatis.page.plugin.entity.UserEntity">
         SELECT * FROM user
     </select>
+    <select id="fetchByUsername" resultType="com.gitee.osinn.mybatis.page.plugin.entity.UserEntity">
+        SELECT * FROM user where username in <foreach collection="usernames" item="username" open="(" separator="," close=")">#{username}</foreach>
+    </select>
 </mapper>

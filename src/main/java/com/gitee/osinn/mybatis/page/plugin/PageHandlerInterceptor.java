@@ -173,7 +173,12 @@ public class PageHandlerInterceptor extends MySqlDialect {
         String pageSql = getPageSql(page, boundSql);
 
         BoundSql pageBoundSql = new BoundSql(mappedStatement.getConfiguration(), pageSql, boundSql.getParameterMappings(), parameter);
-
+        for (ParameterMapping parameterMapping : boundSql.getParameterMappings()) {
+            String prop = parameterMapping.getProperty();
+            if (boundSql.hasAdditionalParameter(prop)) {
+                pageBoundSql.setAdditionalParameter(prop, boundSql.getAdditionalParameter(prop));
+            }
+        }
         return executor.query(mappedStatement, parameter, rowBounds, resultHandler, cacheKey, pageBoundSql);
     }
 

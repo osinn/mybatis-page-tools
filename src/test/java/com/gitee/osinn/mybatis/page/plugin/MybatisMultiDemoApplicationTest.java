@@ -2,7 +2,6 @@ package com.gitee.osinn.mybatis.page.plugin;
 
 import com.gitee.osinn.mybatis.page.plugin.entity.UserEntity;
 import com.gitee.osinn.mybatis.page.plugin.mapper.UserMapper;
-import org.assertj.core.util.Lists;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -10,6 +9,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -94,4 +94,15 @@ public class MybatisMultiDemoApplicationTest {
         System.out.println(page.getList());
     }
 
+    @Test
+    public void fetchByUsername() {
+        Page page = new Page();
+        page.setPageNum(1);
+        page.setPageSize(2);
+        List<String> usernames = new ArrayList<>();
+        usernames.add("root");
+        usernames.add("user");
+        List<UserEntity> userEntities = userMapper.fetchByUsername(page, usernames);
+        System.out.println(userEntities);
+    }
 }
